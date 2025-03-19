@@ -69,18 +69,25 @@ class Pipeline:
 
 	def reset(self):
 		return
+	
+	def movetoa1(self, agent1, el):
+		res = [self.p1[0]-el[0],self.p1[1]-el[1]]
+		rang = 180 + 180*math.atan(res[1]/(res[0]+1e-14))/math.pi
+		if(self.p1[0]<el[0] and self.p1[1]<el[1]): rang-=180
+		agent1.rotate(rang - agent1.get_imu_data())
+		md = math.sqrt(res[0]*res[0]+res[1]*res[1])
+		stpcnt = math.floor(md/5)
+		for _ in range(int(stpcnt)): 
+			agent1.move(5)
+		agent1.move(md-stpcnt*5)
+		self.p1 = [self.p1[0]+md*math.cos(agent1.get_imu_data()*math.pi/180), self.p1[1]+md*math.sin(agent1.get_imu_data()*math.pi/180)]
+
 
 	def work(self, agent1, agent2):
 		if(not self.planning_done):
 			self.p1,self.p2 = agent1.get_pos(), agent2.get_pos()
 			self.planning_done = True
-		res = [self.p1[0]-self.p2[0],self.p1[1]-self.p2[1]]
-		self.ang = 180 + 180*math.atan(res[1]/res[0])/math.pi
-		print(self.ang)
-		agent1.rotate(self.ang - agent1.get_imu_data())
-		sts = 5
-		agent1.move(sts)
-		self.p1 = [self.p1[0]+sts*math.cos(agent1.get_imu_data()*math.pi/180), self.p1[1]+sts*math.sin(agent1.get_imu_data()*math.pi/180)]
+		self.movetoa1(agent1, self.p2)
 		print(self.p1)
 		return
 		
